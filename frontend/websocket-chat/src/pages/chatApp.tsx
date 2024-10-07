@@ -186,19 +186,6 @@ const ChatApp: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <Select onValueChange={setSelectedUser} value={selectedUser}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a user to chat with" />
-          </SelectTrigger>
-          <SelectContent>
-            {users.map((user) => (
-              <SelectItem key={user} value={user}>
-                {user}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
         {selectedUser && (
           <>
             <div
@@ -243,6 +230,18 @@ const ChatApp: React.FC = () => {
             </div>
           </>
         )}
+        <Select onValueChange={setSelectedUser} value={selectedUser}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a user to chat with" />
+          </SelectTrigger>
+          <SelectContent>
+            {users.map((user) => (
+              <SelectItem key={user} value={user}>
+                {user}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </CardContent>
     </Card>
   );
