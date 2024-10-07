@@ -25,7 +25,7 @@ const ChatApp: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<string>("");
   const [inputMessage, setInputMessage] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<ChatHistory>({});
-  const [status, setStatus] = useState<"Connected" | "Disconnected">(
+  const [status, setStatus] = useState<"ACTIVE" | "Disconnected">(
     "Disconnected"
   );
   const messageContainerRef = useRef<HTMLDivElement>(null);
@@ -47,7 +47,7 @@ const ChatApp: React.FC = () => {
     const websocket = new WebSocket("ws://localhost:8080");
 
     websocket.onopen = () => {
-      setStatus("Connected");
+      setStatus("ACTIVE");
     };
 
     websocket.onclose = () => {
@@ -124,7 +124,7 @@ const ChatApp: React.FC = () => {
 
   if (!isLoggedIn) {
     return (
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="text-black w-full max-w-md mx-auto mt-6">
         <CardHeader>
           <h2 className="text-xl font-bold">Join Chat</h2>
         </CardHeader>
@@ -135,7 +135,12 @@ const ChatApp: React.FC = () => {
               onChange={(e) => setUserName(e.target.value)}
               placeholder="Enter your username"
             />
-            <Button onClick={joinChat}>Join</Button>
+            <Button
+              className="border border-green-500 text-black font-bold"
+              onClick={joinChat}
+            >
+              Join
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -143,13 +148,15 @@ const ChatApp: React.FC = () => {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full mx-auto mt-6">
       <CardHeader>
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">Chat as {userName}</h2>
+          <h2 className="text-xl text-black font-bold">
+            Chat as <span className="text-blue-500 font-bold uppercase">{userName}</span>
+          </h2>
           <span
-            className={`text-sm ${
-              status === "Connected" ? "text-green-500" : "text-red-500"
+            className={`text-sm font-bold ${
+              status === "ACTIVE" ? "text-green-500" : "text-red-500"
             }`}
           >
             {status}
@@ -157,6 +164,52 @@ const ChatApp: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent>
+        {selectedUser && (
+          <>
+            <div
+              ref={messageContainerRef}
+              className="h-96 overflow-y-auto my-4 p-2 rounded-md flex flex-col bg-white border border-green-500"
+            >
+              <div className="flex-grow">
+                {currentChat.length ? (
+                  currentChat.map((msg, index) => (
+                    <div
+                      key={index}
+                      className={`mb-2 p-2 rounded ${
+                        msg.from === userName
+                          ? "bg-blue-100 text-black ml-auto"
+                          : "bg-gray-100 text-black"
+                      }`}
+                      style={{ maxWidth: "80%" }}
+                    >
+                      {/* <div className="text-sm text-gray-600">{msg.from}</div> */}
+                      {msg.content}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-black">
+                    Type your message and send your receiver
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Type a message..."
+                onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+              />
+              <Button
+                className="border border-green-500 text-black font-bold flex justify-center items-center gap-2"
+                onClick={sendMessage}
+              >
+                Send
+              </Button>
+            </div>
+          </>
+        )}
+        <br />
         <Select onValueChange={setSelectedUser} value={selectedUser}>
           <SelectTrigger>
             <SelectValue placeholder="Select a user to chat with" />
@@ -169,41 +222,6 @@ const ChatApp: React.FC = () => {
             ))}
           </SelectContent>
         </Select>
-
-        {selectedUser && (
-          <>
-            <div
-              ref={messageContainerRef}
-              className="h-60 overflow-y-auto my-4 p-2 border rounded-md flex flex-col"
-            >
-              <div className="flex-grow">
-                {currentChat.map((msg, index) => (
-                  <div
-                    key={index}
-                    className={`mb-2 p-2 rounded ${
-                      msg.from === userName
-                        ? "bg-blue-100 ml-auto"
-                        : "bg-gray-100"
-                    }`}
-                    style={{ maxWidth: "80%" }}
-                  >
-                    <div className="text-sm text-gray-600">{msg.from}</div>
-                    {msg.content}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Input
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="Type a message..."
-                onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-              />
-              <Button onClick={sendMessage}>Send</Button>
-            </div>
-          </>
-        )}
       </CardContent>
     </Card>
   );
