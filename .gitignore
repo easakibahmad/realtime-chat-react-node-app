@@ -1,0 +1,9 @@
+# Node.js dependencies
+backend/node_modules/
+frontend/websocket-chat/node_modules/
+
+# Build directories
+backend/dist/
+backend/build/
+frontend/websocket-chat/dist/
+frontend/websocket-chat/build/
