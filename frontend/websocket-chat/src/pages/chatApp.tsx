@@ -17,6 +17,8 @@ import {
   isUserListMessage,
 } from "@/lib/types";
 
+const WEBSOCKET_URL = "wss://realtime-chat-react-node-app.onrender.com";
+
 const ChatApp: React.FC = () => {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [userName, setUserName] = useState<string>("");
@@ -29,6 +31,7 @@ const ChatApp: React.FC = () => {
     "Disconnected"
   );
   const messageContainerRef = useRef<HTMLDivElement>(null);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const savedHistory = localStorage.getItem("chatHistory");
@@ -43,16 +46,25 @@ const ChatApp: React.FC = () => {
     }
   }, [chatHistory]);
 
-  useEffect(() => {
-    const websocket = new WebSocket("ws://localhost:8080");
+  const connectWebSocket = useCallback(() => {
+    const websocket = new WebSocket(WEBSOCKET_URL);
 
     websocket.onopen = () => {
       setStatus("ACTIVE");
+      if (isLoggedIn && userName) {
+        websocket.send(
+          JSON.stringify({
+            type: "join",
+            userName,
+          })
+        );
+      }
     };
 
     websocket.onclose = () => {
       setStatus("Disconnected");
-      setIsLoggedIn(false);
+      // Attempt to reconnect after 5 seconds
+      reconnectTimeoutRef.current = setTimeout(connectWebSocket, 5000);
     };
 
     websocket.onmessage = (event: MessageEvent) => {
@@ -74,8 +86,15 @@ const ChatApp: React.FC = () => {
 
     return () => {
       websocket.close();
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+      }
     };
-  }, [userName]);
+  }, [userName, isLoggedIn]);
+
+  useEffect(() => {
+    return connectWebSocket();
+  }, [connectWebSocket]);
 
   const scrollToBottom = () => {
     if (messageContainerRef.current) {
@@ -152,7 +171,10 @@ const ChatApp: React.FC = () => {
       <CardHeader>
         <div className="flex justify-between items-center">
           <h2 className="text-xl text-black font-bold">
-            Chat as <span className="text-blue-500 font-bold uppercase">{userName}</span>
+            Chat as{" "}
+            <span className="text-blue-500 font-bold uppercase">
+              {userName}
+            </span>
           </h2>
           <span
             className={`text-sm font-bold ${
@@ -164,6 +186,19 @@ const ChatApp: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent>
+        <Select onValueChange={setSelectedUser} value={selectedUser}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a user to chat with" />
+          </SelectTrigger>
+          <SelectContent>
+            {users.map((user) => (
+              <SelectItem key={user} value={user}>
+                {user}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         {selectedUser && (
           <>
             <div
@@ -182,13 +217,12 @@ const ChatApp: React.FC = () => {
                       }`}
                       style={{ maxWidth: "80%" }}
                     >
-                      {/* <div className="text-sm text-gray-600">{msg.from}</div> */}
                       {msg.content}
                     </div>
                   ))
                 ) : (
                   <p className="text-black">
-                    Type your message and send your receiver
+                    Type your message and send to your receiver
                   </p>
                 )}
               </div>
@@ -209,19 +243,6 @@ const ChatApp: React.FC = () => {
             </div>
           </>
         )}
-        <br />
-        <Select onValueChange={setSelectedUser} value={selectedUser}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a user to chat with" />
-          </SelectTrigger>
-          <SelectContent>
-            {users.map((user) => (
-              <SelectItem key={user} value={user}>
-                {user}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </CardContent>
     </Card>
   );
