@@ -1,0 +1,24 @@
+npm create vite@latest websocket-chat -- --template react
+
+npm i 
+
+# Install required dependencies
+npm install @radix-ui/react-select
+npm install @radix-ui/react-slot
+npm install class-variance-authority
+npm install clsx
+npm install lucide-react
+npm install tailwindcss
+npm install postcss
+npm install autoprefixer
+npm install tailwindcss-animate
+
+# Initialize Tailwind CSS
+npx tailwindcss init -p
+
+npm install @radix-ui/react-select @radix-ui/react-slot class-variance-authority clsx tailwind-merge lucide-react tailwindcss postcss autoprefixer tailwindcss-animate
+npm i tailwind-merge
+npm install -D @types/node
+
+# remove node_modules
+rm -rf node_modules

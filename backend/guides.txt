@@ -1,0 +1,3 @@
+npm init -y
+install express ws
+npm install nodemon --save-dev
