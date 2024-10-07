@@ -1,6 +1,9 @@
 # Node.js dependencies
 backend/node_modules/
+backend/guides.txt/
+
 frontend/websocket-chat/node_modules/
+frontend/websocket-chat/guides.txt/
 
 # Build directories
 backend/dist/

@@ -1,15 +1,21 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import {
   Select,
-  SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Message, ChatHistory } from "@/lib/types";
+import {
+  Message,
+  ChatHistory,
+  ChatMessage,
+  isChatMessage,
+  isUserListMessage,
+} from "@/lib/types";
 
 const ChatApp: React.FC = () => {
   const [ws, setWs] = useState<WebSocket | null>(null);
@@ -22,6 +28,7 @@ const ChatApp: React.FC = () => {
   const [status, setStatus] = useState<"Connected" | "Disconnected">(
     "Disconnected"
   );
+  const messageContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const savedHistory = localStorage.getItem("chatHistory");
@@ -51,30 +58,15 @@ const ChatApp: React.FC = () => {
     websocket.onmessage = (event: MessageEvent) => {
       const message: Message = JSON.parse(event.data);
 
-      switch (message.type) {
-        case "userList":
-          if (message.users) {
-            setUsers(message.users.filter((user) => user !== userName));
-          }
-          break;
-        case "chat":
-          if (message.from && message.content) {
-            setChatHistory((prev) => {
-              const otherUser =
-                message.from === userName ? message.to : message.from;
-
-              if (!otherUser) {
-                // If `otherUser` is not defined, we return the previous state unchanged.
-                return prev;
-              }
-
-              return {
-                ...prev,
-                [otherUser]: [...(prev[otherUser] || []), message],
-              };
-            });
-          }
-          break;
+      if (isUserListMessage(message)) {
+        setUsers(message.users.filter((user) => user !== userName));
+      } else if (isChatMessage(message)) {
+        const otherUser = message.from === userName ? message.to : message.from;
+        setChatHistory((prev) => ({
+          ...prev,
+          [otherUser]: [...(prev[otherUser] || []), message],
+        }));
+        scrollToBottom();
       }
     };
 
@@ -85,12 +77,23 @@ const ChatApp: React.FC = () => {
     };
   }, [userName]);
 
+  const scrollToBottom = () => {
+    if (messageContainerRef.current) {
+      messageContainerRef.current.scrollTop =
+        messageContainerRef.current.scrollHeight;
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [selectedUser, chatHistory]);
+
   const joinChat = useCallback(() => {
     if (ws && userName && !isLoggedIn) {
       ws.send(
         JSON.stringify({
           type: "join",
-          userName: userName,
+          userName,
         })
       );
       setIsLoggedIn(true);
@@ -99,18 +102,25 @@ const ChatApp: React.FC = () => {
 
   const sendMessage = useCallback(() => {
     if (ws && inputMessage && selectedUser) {
-      ws.send(
-        JSON.stringify({
-          type: "chat",
-          to: selectedUser,
-          content: inputMessage,
-        })
-      );
+      const message: ChatMessage = {
+        type: "chat",
+        from: userName,
+        to: selectedUser,
+        content: inputMessage,
+        timestamp: new Date().toISOString(),
+      };
+      ws.send(JSON.stringify(message));
+
+      setChatHistory((prev) => ({
+        ...prev,
+        [selectedUser]: [...(prev[selectedUser] || []), message],
+      }));
+
       setInputMessage("");
     }
-  }, [ws, inputMessage, selectedUser]);
+  }, [ws, inputMessage, selectedUser, userName]);
 
-  const currentChat = chatHistory[selectedUser] || [];
+  const currentChat = selectedUser ? chatHistory[selectedUser] || [] : [];
 
   if (!isLoggedIn) {
     return (
@@ -147,10 +157,7 @@ const ChatApp: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <Select
-          onValueChange={(value) => setSelectedUser(value)}
-          value={selectedUser}
-        >
+        <Select onValueChange={setSelectedUser} value={selectedUser}>
           <SelectTrigger>
             <SelectValue placeholder="Select a user to chat with" />
           </SelectTrigger>
@@ -165,21 +172,26 @@ const ChatApp: React.FC = () => {
 
         {selectedUser && (
           <>
-            <div className="h-60 overflow-y-auto my-4 p-2 border rounded-md">
-              {currentChat.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`mb-2 p-2 rounded ${
-                    msg.from === userName
-                      ? "bg-blue-100 ml-auto"
-                      : "bg-gray-100"
-                  }`}
-                  style={{ maxWidth: "80%" }}
-                >
-                  <div className="text-sm text-gray-600">{msg.from}</div>
-                  {msg.content}
-                </div>
-              ))}
+            <div
+              ref={messageContainerRef}
+              className="h-60 overflow-y-auto my-4 p-2 border rounded-md flex flex-col"
+            >
+              <div className="flex-grow">
+                {currentChat.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={`mb-2 p-2 rounded ${
+                      msg.from === userName
+                        ? "bg-blue-100 ml-auto"
+                        : "bg-gray-100"
+                    }`}
+                    style={{ maxWidth: "80%" }}
+                  >
+                    <div className="text-sm text-gray-600">{msg.from}</div>
+                    {msg.content}
+                  </div>
+                ))}
+              </div>
             </div>
             <div className="flex gap-2">
               <Input
