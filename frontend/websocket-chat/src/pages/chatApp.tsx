@@ -145,10 +145,10 @@ const ChatApp: React.FC = () => {
     return (
       <Card className="text-black mt-6">
         <CardHeader>
-          <h2 className="text-xl font-bold">Join Chat</h2>
+          <h2 className="text-xl font-bold text-center">Join Chat</h2>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
+          <div className="flex flex-col	 gap-2">
             <Input
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
