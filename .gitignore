@@ -1,6 +1,7 @@
 # Node.js dependencies
 backend/node_modules/
 backend/guides.txt/
+backend/.env
 
 frontend/websocket-chat/node_modules/
 frontend/websocket-chat/guides.txt/

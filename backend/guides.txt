@@ -1,3 +1,18 @@
-npm init -y
-install express ws
-npm install nodemon --save-dev
+-> Initialize node: 
+$terminal: npm init -y
+
+-> Install express and web socket: 
+$terminal: install express ws
+
+-> Install nodemon: 
+$terminal: npm install nodemon --save-dev
+
+-> Install mongodb:
+$terminal: npm install mongodb
+
+-> Install dotenv: 
+$terminal: npm install dotenv
+
+YVUAo0L12J1OClLe
+web-chat
+const mongoUrl = 'mongodb+srv://web-chat:YVUAo0L12J1OClLe@firstcluster.3g9daa6.mongodb.net/?retryWrites=true&w=majority&appName=FirstCluster';
