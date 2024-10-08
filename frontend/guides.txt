@@ -1,24 +1,20 @@
-npm create vite@latest websocket-chat -- --template react
+# Initialize a new Vite project with React
+$ terminal: npm create vite@latest websocket-chat -- --template react
 
-npm i 
+# Navigate into the project directory
+$ terminal: cd websocket-chat
 
-# Install required dependencies
-npm install @radix-ui/react-select
-npm install @radix-ui/react-slot
-npm install class-variance-authority
-npm install clsx
-npm install lucide-react
-npm install tailwindcss
-npm install postcss
-npm install autoprefixer
-npm install tailwindcss-animate
+# Initialize Node.js project with default settings
+$ terminal: npm init -y
 
-# Initialize Tailwind CSS
-npx tailwindcss init -p
+# Install required dependencies for Radix UI, Tailwind CSS, and other utilities
+$ terminal: npm install @radix-ui/react-select @radix-ui/react-slot class-variance-authority clsx tailwind-merge lucide-react tailwindcss postcss autoprefixer tailwindcss-animate
 
-npm install @radix-ui/react-select @radix-ui/react-slot class-variance-authority clsx tailwind-merge lucide-react tailwindcss postcss autoprefixer tailwindcss-animate
-npm i tailwind-merge
-npm install -D @types/node
+# Initialize Tailwind CSS with PostCSS and autoprefixer
+$ terminal: npx tailwindcss init -p
 
-# remove node_modules
-rm -rf node_modules
+# Install Node.js type definitions as a development dependency
+$ terminal: npm install -D @types/node
+
+# Remove the node_modules folder if you need a fresh installation
+$ terminal: rm -rf node_modules

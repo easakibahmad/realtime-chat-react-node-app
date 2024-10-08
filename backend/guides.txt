@@ -1,14 +1,14 @@
--> Initialize node: 
+# Initialize node: 
 $terminal: npm init -y
 
--> Install express and web socket: 
+# Install express and web socket: 
 $terminal: install express ws
 
--> Install nodemon: 
+# Install nodemon: 
 $terminal: npm install nodemon --save-dev
 
--> Install mongodb:
+# Install mongodb:
 $terminal: npm install mongodb
 
--> Install dotenv: 
+# Install dotenv: 
 $terminal: npm install dotenv
