@@ -33,30 +33,11 @@ const ChatApp: React.FC = () => {
   );
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const userNameRef = useRef<string>("");
 
   useEffect(() => {
-    const savedUserName = localStorage.getItem("chatUserName");
-    if (savedUserName) {
-      setUserName(savedUserName);
-    }
-
-    const savedHistory = localStorage.getItem("chatHistory");
-    if (savedHistory) {
-      setChatHistory(JSON.parse(savedHistory));
-    }
-  }, []);
-
-  useEffect(() => {
-    if (userName) {
-      localStorage.setItem("chatUserName", userName);
-    }
+    userNameRef.current = userName;
   }, [userName]);
-
-  useEffect(() => {
-    if (Object.keys(chatHistory).length > 0) {
-      localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
-    }
-  }, [chatHistory]);
 
   const connectWebSocket = useCallback(() => {
     console.log("Attempting to connect WebSocket...");
@@ -65,10 +46,10 @@ const ChatApp: React.FC = () => {
     websocket.onopen = () => {
       console.log("WebSocket connected");
       setStatus("Connected");
-      if (isLoggedIn && userName) {
+      if (isLoggedIn && userNameRef.current) {
         const joinMessage = JSON.stringify({
           type: "join",
-          userName,
+          userName: userNameRef.current,
         });
         websocket.send(joinMessage);
       }
@@ -86,20 +67,20 @@ const ChatApp: React.FC = () => {
         const message: Message = JSON.parse(event.data);
 
         if (isUserListMessage(message)) {
-          setUsers(message.users.filter((user) => user.username !== userName));
+          setUsers(
+            message.users.filter(
+              (user) => user.username !== userNameRef.current
+            )
+          );
         } else if (isChatMessage(message)) {
           console.log("Processing chat message:", message);
-          // Determine the chat partner (either sender or recipient)
           const chatPartner =
-            message.from === userName ? message.to : message.from;
+            message.from === userNameRef.current ? message.to : message.from;
 
-          setChatHistory((prev) => {
-            const updatedHistory = {
-              ...prev,
-              [chatPartner]: [...(prev[chatPartner] || []), message],
-            };
-            return updatedHistory;
-          });
+          setChatHistory((prev) => ({
+            ...prev,
+            [chatPartner]: [...(prev[chatPartner] || []), message],
+          }));
         }
       } catch (error) {
         console.error("Error processing message:", error);
@@ -114,7 +95,7 @@ const ChatApp: React.FC = () => {
         clearTimeout(reconnectTimeoutRef.current);
       }
     };
-  }, [userName, isLoggedIn]);
+  }, [isLoggedIn]);
 
   useEffect(() => {
     return connectWebSocket();
@@ -143,28 +124,20 @@ const ChatApp: React.FC = () => {
   }, [ws, userName, isLoggedIn]);
 
   const sendMessage = useCallback(() => {
-    if (ws && inputMessage && selectedUser) {
+    if (ws && inputMessage && selectedUser && userNameRef.current) {
       const message: ChatMessage = {
         type: "chat",
-        from: userName,
+        from: userNameRef.current,
         to: selectedUser,
         content: inputMessage,
         timestamp: new Date().toISOString(),
       };
       ws.send(JSON.stringify(message));
 
-      // Update local chat history
-      setChatHistory((prev) => {
-        const updatedHistory = {
-          ...prev,
-          [selectedUser]: [...(prev[selectedUser] || []), message],
-        };
-        return updatedHistory;
-      });
-
+      // Remove local chat history update
       setInputMessage("");
     }
-  }, [ws, inputMessage, selectedUser, userName]);
+  }, [ws, inputMessage, selectedUser]);
 
   const currentChat = selectedUser ? chatHistory[selectedUser] || [] : [];
 
@@ -237,14 +210,14 @@ const ChatApp: React.FC = () => {
                     <div
                       key={index}
                       className={`mb-2 p-2 rounded break-words ${
-                        msg.from === userName
+                        msg.from === userNameRef.current
                           ? "bg-blue-100 text-black ml-auto"
                           : "bg-gray-100 text-black mr-auto"
                       }`}
                       style={{ maxWidth: "75%" }}
                     >
                       <div className="text-xs text-gray-500 mb-1">
-                        {msg.from === userName ? "You" : msg.from}
+                        {msg.from === userNameRef.current ? "You" : msg.from}
                       </div>
                       {msg.content}
                     </div>
