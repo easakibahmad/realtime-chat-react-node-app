@@ -170,7 +170,7 @@ const ChatApp: React.FC = () => {
 
   if (!isLoggedIn) {
     return (
-      <Card className="text-black w-full max-w-[95%] md:max-w-md mx-auto mt-6">
+      <Card className="text-black mt-6">
         <CardHeader>
           <h2 className="text-xl font-bold">Join Chat</h2>
         </CardHeader>
@@ -194,7 +194,7 @@ const ChatApp: React.FC = () => {
   }
 
   return (
-    <Card className="w-full mx-auto mt-6 max-w-[95%] md:max-w-2xl">
+    <Card>
       <CardHeader>
         <div className="flex justify-between items-center">
           <h2 className="text-lg md:text-xl text-black font-bold flex items-center gap-2">
