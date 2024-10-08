@@ -12,7 +12,3 @@ $terminal: npm install mongodb
 
 -> Install dotenv: 
 $terminal: npm install dotenv
-
-YVUAo0L12J1OClLe
-web-chat
-const mongoUrl = 'mongodb+srv://web-chat:YVUAo0L12J1OClLe@firstcluster.3g9daa6.mongodb.net/?retryWrites=true&w=majority&appName=FirstCluster';
